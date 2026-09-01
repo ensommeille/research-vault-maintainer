@@ -1,8 +1,21 @@
 # research-vault-maintainer
 
-面向 **Hermes Agent** 的一个 skill，用于把本地的 Obsidian 学术研究知识库（Vault）维护成一个「活的研究知识系统」，而不是一堆摘要的堆砌。
+一个用于把本地 Obsidian 学术研究知识库（Vault）维护成「活的研究知识系统」的 **Agent skill**，而不是一堆摘要的堆砌。
 
 > 📌 `SKILL.md` 是给 Agent 读的操作规范；这份 `README.md` 是给人看的说明。
+
+## 兼容哪些 Agent
+
+核心是一套通用的 `SKILL.md` 规范（`name` + `description` frontmatter，正文按需加载分文件 reference），不绑定单一 Agent：
+
+| Agent | 兼容性 | 说明 |
+|---|---|---|
+| Hermes Agent | ✅ 原生 | `SKILL.md` + `references/` + `scripts/` 直接可用 |
+| Claude Code | ✅ 兼容 | 支持 SKILL.md 规范，`references/` / `scripts/` 同样适用 |
+| OpenAI Codex | ✅ 兼容 | 支持 SKILL.md 规范；`agents/openai.yaml` 是给 Codex 风格子 agent 的可选定义 |
+| 其他支持 SKILL.md 规范的 Agent | ✅ 通用 | 只要支持 `name` + `description` frontmatter 即可 |
+
+> 唯一 Hermes 专属的内容是 frontmatter 里的 `metadata.hermes` 字段（仅用于标签与关联 skill），其他 Agent 会自动忽略。`agents/openai.yaml` 在 Hermes 中是惰性文件，在 Codex / Claude Code 风格里可作为子 agent 定义。
 
 ## 它能做什么
 
@@ -26,7 +39,7 @@
 ```
 .
 ├── SKILL.md                  # Agent 读的操作规范（入口）
-├── agents/openai.yaml        # OpenAI Codex / Claude Code 风格 agent 定义（Hermes 中为惰性文件）
+├── agents/openai.yaml        # Codex / Claude Code 风格子 agent 定义（Hermes 中为惰性文件）
 ├── references/               # 按工作流加载的参考规范
 │   ├── paper-note-schema.md        # 论文笔记模板与评分规则
 │   ├── evidence-protocol.md        # 多模态证据协议
@@ -42,19 +55,25 @@
 
 ## 安装
 
-把这个目录复制到 Hermes 的 skills 目录即可（`$HERMES_HOME` 默认是 `~/.hermes`，桌面版可能不同，用 `hermes config path` 查看）：
+把目录放到对应 Agent 的 skills 位置即可（具体路径以各 Agent 官方文档为准）：
+
+| Agent | 安装位置（参考） |
+|---|---|
+| Hermes Agent | `$HERMES_HOME/skills/research/research-vault-maintainer/`（默认 `~/.hermes`） |
+| Claude Code | `~/.claude/skills/research-vault-maintainer/`（用户级）或项目内 `.claude/skills/` |
+| OpenAI Codex | 项目内 `.codex/skills/` 或用户级 `~/.codex/skills/` |
 
 ```bash
-# macOS / Linux
-mkdir -p ~/.hermes/skills/research
-cp -r . ~/.hermes/skills/research/research-vault-maintainer/
-
-# Windows（PowerShell，桌面版示例）
-$HOME = (hermes config path | Split-Path -Parent)
-Copy-Item -Recurse . "$HOME\skills\research\research-vault-maintainer"
+# 通用：克隆后复制到目标 skills 目录
+git clone https://github.com/ensommeille/research-vault-maintainer.git
+cp -r research-vault-maintainer <skills-root>/research/research-vault-maintainer/
 ```
 
-安装后在新会话中即可调用，或执行 `/reload-skills` 重新扫描。
+Hermes 用户也可用 CLI 安装：
+
+```bash
+hermes skills install https://github.com/ensommeille/research-vault-maintainer/raw/main/SKILL.md
+```
 
 ## 三个脚本
 
